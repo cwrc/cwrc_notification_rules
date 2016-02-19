@@ -1,8 +1,10 @@
 <?php
 /**
  * @file
- * Drupal needs this blank file.
+ * Code for the CWRC: notification rules feature.
  */
+
+include_once 'cwrc_notification_rules.features.inc';
 
 /**
  * Implements hook_theme().
