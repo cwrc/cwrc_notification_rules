@@ -3,3 +3,59 @@
  * @file
  * Drupal needs this blank file.
  */
+
+/**
+ * Implements hook_theme().
+ */
+function cwrc_notification_rules_theme($existing, $type, $theme, $path) {
+  return array(
+    'notification_icon_block' => array(
+      'template' => 'templates/notification-icon-block',
+      'variables' => array(
+        'unread_count' => NULL,
+        'unread_message' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function cwrc_notification_rules_block_info() {
+
+  $blocks['notification_icon'] = array(
+    'info' => t('Notification icon'),
+    'cache' => DRUPAL_NO_CACHE
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function cwrc_notification_rules_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+
+    case 'notification_icon':
+      global $user;
+      if ($user->uid != 0) {
+        $unread_count = privatemsg_unread_count();
+        $unread_message = format_plural(
+          $unread_count,
+          'unread message',
+          'unread messages');
+        $block['subject'] = t('Notifications');
+        $block['content'] = theme('notification_icon_block', array(
+          'unread_count' => $unread_count,
+          'unread_message' => $unread_message,
+        ));
+      }
+      break;
+
+  }
+  return $block;
+}
