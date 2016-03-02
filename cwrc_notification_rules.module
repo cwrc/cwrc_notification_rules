@@ -61,3 +61,127 @@ function cwrc_notification_rules_block_view($delta = '') {
   }
   return $block;
 }
+
+/**
+ * Takes a form array and adds the notification elements before the submit
+ * element (if it exists).
+ */
+function cwrc_notification_rules_notification_form(&$form, &$form_state) {
+  // Weigh down the submit button if it exists.
+  if (isset($form['submit'])) {
+    $form['submit']['#weight'] = 10;
+  }
+
+  // Add new form elements.
+  $form['cwrc_notification_rules_notify'] = array(
+    '#type' => 'checkbox',
+    '#weight' => 8,
+    '#title' => t('Send notification?'),
+    '#default_value' => false,
+  );
+  $form['cwrc_notification_rules_notification'] = array(
+    '#type' => 'fieldset',
+    '#weight' => 9,
+    '#title' => t('Notification'),
+    '#tree' => true,
+    '#states' => array(
+      'invisible' => array(
+       ':input[name="cwrc_notification_rules_notify"]' => array('checked' => false),
+      ),
+    ),
+  );
+  $form['cwrc_notification_rules_notification']['recipient'] = array(
+    '#type' => 'textfield',
+    '#autocomplete_path' => 'messages/autocomplete',
+    '#title' => t('Recipient(s)'),
+  );
+  $form['cwrc_notification_rules_notification']['subject'] = array(
+    '#type' => 'textbox',
+    '#title' => t('Subject'),
+  );
+  $form['cwrc_notification_rules_notification']['body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Message'),
+  );
+
+  // Add validation and submit handlers.
+  $form['#validate'][] = 'cwrc_notification_rules_notification_form_validate';
+  $form['#submit'][] = 'cwrc_notification_rules_notification_form_submit';
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Injects optional notification form for integration with the privatemsg
+ * module.
+ */
+function cwrc_notification_rules_form_islandora_basic_collection_share_item_form_alter(&$form, &$form_state) {
+  global $user;
+  $object = menu_get_object('islandora_object', 2);
+  if (!$object) {
+    return;
+  }
+
+  // Add notification form elements.
+  cwrc_notification_rules_notification_form($form, $form_state);
+
+  // Hard-code subject and body values.
+  $form['cwrc_notification_rules_notification']['subject']['#type'] = 'hidden';
+  $form['cwrc_notification_rules_notification']['subject']['#value'] = t('@user shared "@object".', array(
+    '@user' => realname_load($user),
+    '@object' => $object->label,
+  ));
+  $form['cwrc_notification_rules_notification']['body']['#type'] = 'hidden';
+  $form['cwrc_notification_rules_notification']['body']['#value'] = t('View "@object" <a href="@url">here</a>.', array(
+    '@object' => $object->label,
+    '@url' => url('islandora/object/' . $object->id),
+  ));
+}
+
+/**
+ * Validation handler, only validates our fields if "Notify?" is selected.
+ */
+function cwrc_notification_rules_notification_form_validate($form, &$form_state) {
+  $values = $form_state['values'];
+  if ($values['cwrc_notification_rules_notify']) {
+    $notification = $values['cwrc_notification_rules_notification'];
+
+    // All fields are required.
+    if (empty($notification['recipient'])) {
+      form_set_error('cwrc_notification_rules_notification][recipient', t('To send a notification "recipient(s)" cannot be empty.'));
+    }
+    if (empty($notification['subject'])) {
+      form_set_error('cwrc_notification_rules_notification][subject', t('To send a notification "subject" cannot be empty.'));
+    }
+    if (empty($notification['body'])) {
+      form_set_error('cwrc_notification_rules_notification][body', t('To send a notification "message" cannot be empty.'));
+    }
+
+    // Check for invalid recipients.
+    list($valid, $invalid, $duplicates, $denieds) = _privatemsg_parse_userstring($notification['recipient']);
+    if (count($invalid) > 0) {
+      form_set_error('cwrc_notification_rules_notification][recipient', format_plural(
+        count($invalid),
+        'The user "@user" is invalid.',
+        'The users "@user" are invalid.',
+        array('@user' => implode('", "', $invalid))
+      ));
+    }
+  }
+}
+
+/**
+ * Submit handler, only sends notification if "Notify?" is selected.
+ */
+function cwrc_notification_rules_notification_form_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  if ($values['cwrc_notification_rules_notify']) {
+    $notification = $values['cwrc_notification_rules_notification'];
+
+    // Get recipients.
+    list($valid, $invalid, $duplicates, $denieds) = _privatemsg_parse_userstring($notification['recipient']);
+
+    // Send notification to users.
+    privatemsg_new_thread($valid, filter_xss($notification['subject']), check_markup($notification['body'], 'filtered_html'));
+  }
+}
