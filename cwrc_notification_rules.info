@@ -7,6 +7,7 @@ dependencies[] = ctools
 dependencies[] = entity
 dependencies[] = fe_block
 dependencies[] = og
+dependencies[] = privatemsg
 dependencies[] = rules
 features[borealis_sb][] = cwrc_notification_rules_notification_icon
 features[ctools][] = borealis_sb:borealis_sb_default:1
