@@ -63,6 +63,54 @@ function cwrc_notification_rules_block_view($delta = '') {
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Adds a validation callback to the bookmark detailed form that notifies users
+ * when a bookmark list is shared with them.
+ */
+function cwrc_notification_rules_form_islandora_bookmark_detailed_form_alter(&$form, &$form_state) {
+  $form['#validate'][] = 'cwrc_notification_rules_bookmark_validate';
+}
+
+/**
+ * Validation callback that actually fires the bookmark list notification.
+ */
+function cwrc_notification_rules_bookmark_validate($form, &$form_state) {
+  // Check if this was triggered by the 'Share' button
+  if (isset($form_state['triggering_element']['#button_id'])
+    && $form_state['triggering_element']['#button_id'] == 'islandora-bookmark-add-user') {
+
+      // Get the uid of the user to be added.
+      $parents = array('bookmarks', 'users', 'listusers');
+      $add_user = drupal_array_get_nested_value($form_state['values'], $parents);
+
+      // Ensure we have something to do.
+      if (drupal_strlen($add_user) > 0 && $add_user != "0") {
+
+        // Load required objects.
+        module_load_include('inc', 'islandora_bookmark', 'includes/api');
+        global $user;
+        $shared = user_load($add_user);
+        $list = Bookmark::getList($form_state['build_info']['args'][0]);
+
+        // Set up private message.
+        $recipients = array($shared);
+        $subject = t('Notification: @user shared the bookmark list "@list" with you.', array(
+          '@user' => realname_load($user),
+          '@list' => $list->bookmarkName,
+        ));
+        $body = t('View "@list" <a href="@url">here</a>.', array(
+          '@list' => $list->bookmarkName,
+          '@url' => url('islandora-bookmark/listid/' . $list->getId()),
+        ));
+
+        // Send private message.
+        privatemsg_new_thread($recipients, $subject, $body);
+      }
+    }
+}
+
+/**
  * Takes a form array and adds the notification elements before the submit
  * element (if it exists).
  */
