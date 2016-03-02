@@ -66,10 +66,10 @@ function cwrc_notification_rules_block_view($delta = '') {
  * Takes a form array and adds the notification elements before the submit
  * element (if it exists).
  */
-function cwrc_notification_rules_notification_form(&$form, &$form_state) {
+function cwrc_notification_rules_notification_form(&$form, &$form_state, $submit = 'submit') {
   // Weigh down the submit button if it exists.
-  if (isset($form['submit'])) {
-    $form['submit']['#weight'] = 10;
+  if (isset($form[$submit])) {
+    $form[$submit]['#weight'] = 10;
   }
 
   // Add new form elements.
@@ -127,7 +127,7 @@ function cwrc_notification_rules_form_islandora_basic_collection_share_item_form
 
   // Hard-code subject and body values.
   $form['cwrc_notification_rules_notification']['subject']['#type'] = 'hidden';
-  $form['cwrc_notification_rules_notification']['subject']['#value'] = t('@user shared "@object".', array(
+  $form['cwrc_notification_rules_notification']['subject']['#value'] = t('Notification: @user shared "@object".', array(
     '@user' => realname_load($user),
     '@object' => $object->label,
   ));
