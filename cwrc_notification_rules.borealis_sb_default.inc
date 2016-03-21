@@ -16,7 +16,7 @@ function cwrc_notification_rules_default_semantic_wrapper() {
   $semantic_wrapper->uid = 'cwrc_notification_rules_notification_icon';
   $semantic_wrapper->module = 'cwrc_notification_rules';
   $semantic_wrapper->delta = 'notification_icon';
-  $semantic_wrapper->semantics = 'div';
+  $semantic_wrapper->semantics = 'none';
   $export['cwrc_notification_rules_notification_icon'] = $semantic_wrapper;
 
   return $export;
