@@ -233,3 +233,17 @@ function cwrc_notification_rules_notification_form_submit($form, &$form_state) {
     privatemsg_new_thread($valid, filter_xss($notification['subject']), check_markup($notification['body'], 'filtered_html'));
   }
 }
+
+/**
+ * Implements hook_form_alter().
+ */
+function cwrc_notification_rules_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == "privatemsg_list") {
+    $form['updated']['actions']['newmsg'] = array(
+      '#type' => 'markup',
+      '#markup' => '<span class="compose-new-message">' . l(t('New message'), 'messages/new') . '</a></span>',
+      '#weight' => 50,
+    );
+    return $form;
+  }
+}
