@@ -26,7 +26,7 @@ function cwrc_notification_rules_default_fe_block_settings() {
         'region' => 'masthead',
         'status' => 1,
         'theme' => 'de_theme',
-        'weight' => 5,
+        'weight' => 4,
       ),
     ),
     'title' => '',
