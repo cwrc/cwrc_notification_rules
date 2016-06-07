@@ -33,7 +33,7 @@ function cwrc_notification_rules_default_rules_configuration() {
         },
         { "mail" : {
             "to" : [ "account:mail" ],
-            "subject" : "Your application to join [node-group-loaded:title] has been rejected",
+            "subject" : "Your application to join [node-group-loaded:title] has been approved",
             "message" : "Dear [account:name],\\r\\n\\r\\nYour application to join the group [node-group-loaded:title] has been approved.\\r\\n\\r\\nYou can view the group at: [node-group-loaded:url]\\r\\n\\r\\nthanks,\\r\\n-- The staff at the Canadian Writing Research Centre collaboratory",
             "language" : [ "account:language" ]
           }
