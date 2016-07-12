@@ -73,5 +73,34 @@ function cwrc_notification_rules_default_rules_configuration() {
       ]
     }
   }');
+  $items['rules_send_application_privatemsg'] = entity_import('rules_config', '{ "rules_send_application_privatemsg" : {
+      "LABEL" : "Send group application privatemsg",
+      "PLUGIN" : "reaction rule",
+      "OWNER" : "rules",
+      "REQUIRES" : [ "rules", "privatemsg_rules", "og" ],
+      "ON" : { "og_user_insert" : [] },
+      "IF" : [
+        { "data_is" : { "data" : [ "og-membership:state" ], "value" : "2" } },
+        { "entity_is_of_type" : { "entity" : [ "og-membership:group" ], "type" : "node" } }
+      ],
+      "DO" : [
+        { "variable_add" : {
+            "USING" : { "type" : "node", "value" : [ "og-membership:group" ] },
+            "PROVIDE" : { "variable_added" : { "group" : "Added variable" } }
+          }
+        },
+        { "privatemsg_rules_new" : {
+            "USING" : {
+              "recipient" : [ "group:author" ],
+              "author" : [ "account" ],
+              "subject" : "[account:name] membership request [group:title]",
+              "body" : "[group:author:name],\r\n\r\n[account:name] requests membership for group \u0027[group:title]\u0027 in [group:url].\r\n\r\n[og_membership:og-membership-request]\r\n\r\nTo approve or deny this request, go to [site:url]group\/node\/[group:nid]\/admin\/people"
+            },
+            "PROVIDE" : { "thread_id" : { "thread_id" : "ID of new thread" } }
+          }
+        }
+      ]
+    }
+  }');
   return $items;
 }
