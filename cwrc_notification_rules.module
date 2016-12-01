@@ -206,7 +206,7 @@ function cwrc_notification_rules_notification_form_validate($form, &$form_state)
     }
 
     // Check for invalid recipients.
-    list($valid, $invalid, $duplicates, $denieds) = _privatemsg_parse_userstring($notification['recipient']);
+    list(, $invalid, , ) = _privatemsg_parse_userstring($notification['recipient']);
     if (count($invalid) > 0) {
       form_set_error('cwrc_notification_rules_notification][recipient', format_plural(
         count($invalid),
@@ -227,7 +227,7 @@ function cwrc_notification_rules_notification_form_submit($form, &$form_state) {
     $notification = $values['cwrc_notification_rules_notification'];
 
     // Get recipients.
-    list($valid, $invalid, $duplicates, $denieds) = _privatemsg_parse_userstring($notification['recipient']);
+    list($valid, , , ) = _privatemsg_parse_userstring($notification['recipient']);
 
     // Send notification to users.
     privatemsg_new_thread($valid, filter_xss($notification['subject']), check_markup($notification['body'], 'filtered_html'));
